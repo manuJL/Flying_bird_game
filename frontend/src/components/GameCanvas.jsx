@@ -78,6 +78,11 @@ function skyColors(time) {
 
 const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
   const canvasRef = useRef(null);
+  // The engine API is built inside the effect (it needs the closure over W/H,
+  // G, the loop, etc.) and exposed here through a stable ref. This keeps
+  // `useImperativeHandle` at the top level, which React is happy with.
+  const apiRef = useRef(null);
+  useImperativeHandle(ref, () => apiRef.current, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -191,7 +196,10 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
 
     function roundStats() {
       return {
-        elapsed: Math.round(G.time * 100) / 100,
+        // Full precision: the backend floors with int(), and so does the
+        // frontend score (Math.floor), so round-tripping extra decimals could
+        // drift the displayed score from the recorded one by one point.
+        elapsed: G.time,
         bonus: G.bonus,
         score: Math.floor(G.time) + G.bonus,
         effects: effectsList(),
@@ -653,7 +661,10 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
         G.obstacles = G.obstacles.filter((o) => o.x + o.w > -80);
         G.coins = G.coins.filter((c) => c.x > -40);
         G.pickups = G.pickups.filter((pk) => pk.x > -60);
+      if (G.phase === 'running') {
+        G.time += dt;
       } else if (G.phase === 'attract' || G.phase === 'over') {
+        G.time += dt;
         G.groundOffset = (G.groundOffset + 60 * G.scale * dt) % 40;
         G.player.y += Math.sin(G.time * 0.9) * 22 * G.scale * dt;
       }
@@ -1459,7 +1470,8 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
     resize();
     raf = requestAnimationFrame(loop);
 
-    useImperativeHandle(ref, () => ({
+    // The imperative surface the React overlay (HUD/touch controls) drives.
+    apiRef.current = {
       start() {
         startRound();
       },
@@ -1479,7 +1491,7 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
         return G.phase === 'running';
       },
       unlockAudio,
-    }));
+    };
 
     return () => {
       running = false;

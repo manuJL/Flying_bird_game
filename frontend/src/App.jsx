@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PreGameScreen from './screens/PreGameScreen';
 import RunningScreen from './screens/RunningScreen';
 import GameOverScreen from './screens/GameOverScreen';
+import GameCanvas from './components/GameCanvas';
 import './App.css';
 
 // The challenge backend is injected by the sandbox via VITE_BASE_BE_ENDPOINT.
@@ -92,19 +93,22 @@ const api = {
 };
 
 export default function App() {
-  // Server keeps the real "return to the game later" memory, but we also keep
-  // a local mirror so the game is fully playable with no network at all.
+  // The canvas stays mounted for the whole app: it breathes behind the menu
+  // and keeps the frozen wreckage behind the game-over card.
+  const engineRef = useRef(null);
   const [bestScore, setBestScore] = useState(readLocalBest);
   const [phase, setPhase] = useState('pre_game');
   const [finalScore, setFinalScore] = useState(0);
   const [isNewBest, setIsNewBest] = useState(false);
   const [lastStats, setLastStats] = useState({ elapsed: 0, bonus: 0 });
-
-  // Values used inside callbacks keep living in refs so the callbacks
-  // themselves stay stable and the game loop closure never sees stale state.
-  const bestRef = useRef(readLocalBest());
+  // The live backend session id lives in state so the running HUD can react
+  // to it arriving (createSession is async), and in a ref for the game-over
+  // handler which runs inside the engine's timer callback.
+  const [sessionId, setSessionId] = useState(null);
   const sessionIdRef = useRef(null);
-  const roundBestAtStartRef = useRef(bestRef.current);
+  // The best score lives in a ref too: the engine's game-over callback fires
+  // inside a timer, so it must never close over stale state.
+  const bestRef = useRef(readLocalBest());
 
   // Load the retained best score once on first mount, merging with anything
   // we already knew locally (the safer of the two wins).
@@ -126,11 +130,12 @@ export default function App() {
   const startRound = useCallback(() => {
     setFinalScore(0);
     setIsNewBest(false);
+    setSessionId(null);
     setPhase('running');
-    roundBestAtStartRef.current = bestRef.current;
 
     api.createSession().then((id) => {
       sessionIdRef.current = id;
+      if (id !== null) setSessionId(id);
     });
   }, []);
 
@@ -167,16 +172,19 @@ export default function App() {
 
   return (
     <div className="game-container">
+      {/* Always mounted: idle sky behind the menu, wreckage behind game over. */}
+      <GameCanvas ref={engineRef} onGameOver={handleGameOver} />
+
       {phase === 'pre_game' && (
         <PreGameScreen bestScore={bestScore} onStartGame={startRound} />
       )}
 
       {phase === 'running' && (
         <RunningScreen
-          sessionId={sessionIdRef.current}
+          engineRef={engineRef}
+          sessionId={sessionId}
           bestScore={bestRef.current}
           baseUrl={BASE_ENDPOINT}
-          onGameOver={handleGameOver}
         />
       )}
 

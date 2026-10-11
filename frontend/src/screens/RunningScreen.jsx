@@ -1,5 +1,4 @@
-import React, { useEffect, useRef } from 'react';
-import GameCanvas from '../components/GameCanvas';
+import React, { useEffect } from 'react';
 import { unlockAudio, setMuted, isMuted, sfx } from '../utils/sound';
 import './../styles/RunningScreen.css';
 
@@ -16,20 +15,21 @@ const FX_STYLE = {
   squash: 'fx fx-squash',
 };
 
-export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOver }) {
-  const canvasRef = useRef(null);
-  const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId; // keep freshest value without re-render churn
-
-  // Start the round as soon as the engine is mounted. `start()` is idempotent,
-  // so React StrictMode's dev double-mount just resets to the same state.
+// The engine lives on a canvas that stays mounted for the whole app (see
+// App.jsx). This screen is a pure overlay : it starts the round, reads the
+// engine's stats into the DOM HUD, pushes progress to the backend, and offers
+// touch controls. The 60fps loop on the canvas never touches React state.
+export default function RunningScreen({ engineRef, sessionId, bestScore, baseUrl }) {
+  // Kick the round off the moment this overlay mounts. `start()` is
+  // idempotent, so StrictMode's dev double-mount just resets to same state.
   useEffect(() => {
     unlockAudio();
-    canvasRef.current?.start();
-  }, []);
+    engineRef.current?.start();
+  }, [engineRef]);
 
-  // HUD + backend progress are updated imperatively from the engine's stats,
-  // which keeps the 60fps loop free of React state churn.
+  // Poll the engine for HUD numbers and active effects. The engine ref is
+  // stable, so this interval lives for the whole running screen; reading
+  // `bestScore` again keeps the "beating best" glow honest.
   useEffect(() => {
     const hud = {
       score: document.querySelector('[data-hud="score"]'),
@@ -41,7 +41,7 @@ export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOve
 
     if (!hud.score) return undefined;
     const id = window.setInterval(() => {
-      const stats = canvasRef.current?.getStats();
+      const stats = engineRef.current?.getStats();
       if (!stats) return;
 
       hud.score.textContent = String(stats.score);
@@ -66,17 +66,17 @@ export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOve
     }, HUD_TICK_MS);
 
     return () => window.clearInterval(id);
-  }, [bestScore]);
+  }, [engineRef, bestScore]);
 
   // Push live progress to the backend every second while a session exists, so
   // a mid-round crash still leaves a sensible score behind.
   useEffect(() => {
-    if (sessionIdRef.current === null) return undefined;
+    if (sessionId === null) return undefined;
     const id = window.setInterval(() => {
-      const stats = canvasRef.current?.getStats();
+      const stats = engineRef.current?.getStats();
       if (!stats) return;
       try {
-        void fetch(`${baseUrl}/api/game-sessions/${sessionIdRef.current}`, {
+        void fetch(`${baseUrl}/api/game-sessions/${sessionId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -89,8 +89,7 @@ export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOve
       }
     }, SYNC_TICK_MS);
     return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sessionId, engineRef, baseUrl]);
 
   const muteToggle = () => {
     sfx.uiClick();
@@ -99,8 +98,6 @@ export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOve
 
   return (
     <div className="running">
-      <GameCanvas ref={canvasRef} onGameOver={onGameOver} />
-
       <div className="hud" role="status" aria-live="off">
         <div className="hud-left">
           <div className="hud-item hud-score">
@@ -151,10 +148,10 @@ export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOve
           className="touch-btn touch-up"
           type="button"
           aria-label="Fly up"
-          onPointerDown={(e) => canvasRef.current?.setButton('up', true)}
-          onPointerUp={() => canvasRef.current?.setButton('up', false)}
-          onPointerLeave={() => canvasRef.current?.setButton('up', false)}
-          onPointerCancel={() => canvasRef.current?.setButton('up', false)}
+          onPointerDown={(e) => engineRef.current?.setButton('up', true)}
+          onPointerUp={() => engineRef.current?.setButton('up', false)}
+          onPointerLeave={() => engineRef.current?.setButton('up', false)}
+          onPointerCancel={() => engineRef.current?.setButton('up', false)}
           onContextMenu={(e) => e.preventDefault()}
         >
           &#8593;
@@ -163,10 +160,10 @@ export default function RunningScreen({ sessionId, bestScore, baseUrl, onGameOve
           className="touch-btn touch-down"
           type="button"
           aria-label="Fly down"
-          onPointerDown={(e) => canvasRef.current?.setButton('down', true)}
-          onPointerUp={() => canvasRef.current?.setButton('down', false)}
-          onPointerLeave={() => canvasRef.current?.setButton('down', false)}
-          onPointerCancel={() => canvasRef.current?.setButton('down', false)}
+          onPointerDown={(e) => engineRef.current?.setButton('down', true)}
+          onPointerUp={() => engineRef.current?.setButton('down', false)}
+          onPointerLeave={() => engineRef.current?.setButton('down', false)}
+          onPointerCancel={() => engineRef.current?.setButton('down', false)}
           onContextMenu={(e) => e.preventDefault()}
         >
           &#8595;
