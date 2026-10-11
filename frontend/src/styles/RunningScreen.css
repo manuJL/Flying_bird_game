@@ -1,0 +1,181 @@
+.running {
+  position: absolute;
+  inset: 0;
+}
+
+.hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 16px;
+  pointer-events: none;
+  font-family: 'KenVector Future', 'Segoe UI', system-ui, sans-serif;
+}
+
+.hud-left,
+.hud-right {
+  display: flex;
+  gap: 10px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 84px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(12, 22, 44, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(3px);
+}
+
+.hud-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #94a9cf;
+}
+
+.hud-big {
+  font-size: 26px;
+  line-height: 1.15;
+  color: #ffffff;
+}
+
+.hud-score .hud-big {
+  color: #ffe066;
+}
+
+.hud-best .hud-big {
+  color: #7fd4ff;
+}
+
+.hud-best-heat {
+  color: #4ade80 !important;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.9);
+  animation: best-pulse 0.6s ease infinite alternate;
+}
+
+.hud-center .hud-item {
+  min-width: 108px;
+}
+
+.hud-time .hud-big {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-bonus .hud-big {
+  color: #ffd166;
+}
+
+.hud-mute {
+  pointer-events: auto;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(12, 22, 44, 0.55);
+  color: #dbe7ff;
+  font-family: 'KenVector Future', 'Segoe UI', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+}
+
+.hud-mute:active {
+  background: rgba(40, 70, 120, 0.6);
+}
+
+.hud-fx {
+  position: absolute;
+  top: 96px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.fx {
+  font-family: 'KenVector Future', 'Segoe UI', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(20, 34, 60, 0.7);
+  border: 1px solid currentColor;
+  box-shadow: 0 0 10px -4px currentColor;
+  animation: pop-in 0.2s ease both;
+}
+
+.fx-shield {
+  color: #38c6ff;
+}
+.fx-slow {
+  color: #4ade80;
+}
+.fx-turbo {
+  color: #fb923c;
+}
+.fx-heavy {
+  color: #f43f5e;
+}
+.fx-squash {
+  color: #ff7a59;
+}
+
+.touch-controls {
+  position: absolute;
+  bottom: 26px;
+  right: 26px;
+  display: none;
+  gap: 14px;
+  pointer-events: none;
+}
+
+.touch-btn {
+  pointer-events: auto;
+  appearance: none;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(18, 32, 58, 0.55);
+  color: #fff;
+  font-size: 30px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  touch-action: none;
+  user-select: none;
+}
+
+.touch-btn:active {
+  background: rgba(70, 120, 200, 0.7);
+}
+
+@media (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+  }
+}
+
+@keyframes best-pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}

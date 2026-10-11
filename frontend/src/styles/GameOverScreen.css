@@ -1,0 +1,104 @@
+.gameover-panel {
+  width: min(440px, 100%);
+  text-align: center;
+  padding: 34px 34px 30px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(24, 40, 72, 0.94), rgba(14, 24, 46, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px rgba(6, 12, 28, 0.6);
+  color: #eaf2ff;
+  animation: pop-in 0.3s ease both;
+}
+
+.gameover-kicker {
+  font-family: 'KenVector Future', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #94a9cf;
+}
+
+.gameover-best-badge {
+  display: inline-block;
+  margin: 12px 0 4px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-family: 'KenVector Future', 'Segoe UI', sans-serif;
+  font-size: 17px;
+  letter-spacing: 1px;
+  color: #06331c;
+  background: linear-gradient(180deg, #7ef5b0, #34d37c);
+  box-shadow: 0 0 22px rgba(74, 222, 128, 0.8);
+  animation: best-pop 0.4s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.gameover-score {
+  display: flex;
+  flex-direction: column;
+  margin: 14px 0 6px;
+}
+
+.gameover-score-label {
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #94a9cf;
+}
+
+.gameover-score-value {
+  font-family: 'KenVector Future', 'Segoe UI', sans-serif;
+  font-size: clamp(54px, 12vw, 84px);
+  line-height: 1;
+  color: #ffe066;
+  text-shadow: 0 6px 24px rgba(255, 209, 102, 0.35);
+}
+
+.gameover-breakdown {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: #b9cdee;
+}
+
+.dot-sep {
+  opacity: 0.5;
+}
+
+.gameover-best {
+  margin: 16px 0 20px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(127, 212, 255, 0.1);
+  border: 1px solid rgba(127, 212, 255, 0.25);
+  font-size: 14px;
+  color: #7fd4ff;
+}
+
+.gameover-best b {
+  font-family: 'KenVector Future', 'Segoe UI', sans-serif;
+  font-size: 22px;
+  color: #ffffff;
+}
+
+.gameover-panel .btn-start {
+  width: 100%;
+}
+
+@keyframes best-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .gameover-panel {
+    padding: 24px 20px 22px;
+  }
+}
