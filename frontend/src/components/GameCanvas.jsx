@@ -81,7 +81,7 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
   // The engine API is built inside the effect (it needs the closure over W/H,
   // G, the loop, etc.) and exposed here through a stable ref. This keeps
   // `useImperativeHandle` at the top level, which React is happy with.
-  const apiRef = useRef(null);
+  const apiRef = useRef({});
   useImperativeHandle(ref, () => apiRef.current, []);
 
   useEffect(() => {
@@ -661,8 +661,6 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
         G.obstacles = G.obstacles.filter((o) => o.x + o.w > -80);
         G.coins = G.coins.filter((c) => c.x > -40);
         G.pickups = G.pickups.filter((pk) => pk.x > -60);
-      if (G.phase === 'running') {
-        G.time += dt;
       } else if (G.phase === 'attract' || G.phase === 'over') {
         G.time += dt;
         G.groundOffset = (G.groundOffset + 60 * G.scale * dt) % 40;
@@ -1471,7 +1469,9 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
     raf = requestAnimationFrame(loop);
 
     // The imperative surface the React overlay (HUD/touch controls) drives.
-    apiRef.current = {
+    // apiRef holds a stable object; we mutate its fields here, so the handle
+    // the parent grabbed at commit time always sees the latest methods.
+    Object.assign(apiRef.current, {
       start() {
         startRound();
       },
@@ -1491,7 +1491,7 @@ const GameCanvas = forwardRef(function GameCanvas({ onGameOver }, ref) {
         return G.phase === 'running';
       },
       unlockAudio,
-    };
+    });
 
     return () => {
       running = false;
